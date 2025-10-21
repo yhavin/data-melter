@@ -52,6 +52,7 @@ with st.container(border=True):
     )
 
     if input_file is not None:
+        print(input_file)
         df = pl.read_csv(input_file, ignore_errors=True)
         headers = df.columns
         before_length = df.shape[0]
@@ -69,7 +70,9 @@ with st.container(border=True):
 
         if submit:
             data, after_length = melt_data(df, on_column)
-            st.success(body=f"Successfully expanded {before_length} rows into {after_length} contacts.")
+            message = f"Successfully expanded {before_length} rows into {after_length} contacts."
+            print(message)
+            st.success(body=message)
 
             download_button = st.download_button(
                 label="Download",
