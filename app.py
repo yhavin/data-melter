@@ -1,0 +1,80 @@
+
+"""
+Streamlit app for splitting and unpivoting wide tables of contacts.
+
+Author: Yakir Havin
+"""
+
+
+import streamlit as st
+import polars as pl
+
+
+# =======================
+# Functions
+# =======================
+def melt_data(df: pl.DataFrame, on: str) -> pl.DataFrame:
+    """SPlit phone numbers and convert to long format."""
+    df = df.with_columns(
+        pl.col(on).str.split(" \n")
+    )
+    df = df.explode(on)
+    after_length = df.shape[0]
+    data = df.write_csv()
+    return data, after_length
+
+
+# =======================
+# User interface
+# =======================
+st.set_page_config(
+    page_title="Data Melter",
+    page_icon=":material/data_table:"
+)
+
+st.header(":material/data_table: Data Melter")
+st.caption("Developed by Yakir Havin")
+
+# with st.expander(label="💡 Instructions"):
+#     st.markdown(
+#         """
+#         1. Upload a CSV of the contacts data
+#         2. Select the column containing multiple phone numbers
+#         3. Press Run
+#         4. Download expanded CSV
+#         """
+#     )
+
+with st.container(border=True):
+    input_file = st.file_uploader(
+        label="Upload file",
+        type="csv"
+    )
+
+    if input_file is not None:
+        df = pl.read_csv(input_file, ignore_errors=True)
+        headers = df.columns
+        before_length = df.shape[0]
+
+        on_column = st.selectbox(
+            label="Choose phone numbers column",
+            options=headers,
+            index=None
+        )
+
+        submit = st.button(
+            label="Run",
+            icon=":material/play_circle:"
+        )
+
+        if submit:
+            data, after_length = melt_data(df, on_column)
+            st.success(body=f"Successfully expanded {before_length} rows into {after_length} contacts.")
+
+            download_button = st.download_button(
+                label="Download",
+                data=data,
+                icon=":material/download:",
+                mime="text/csv",
+                file_name="contacts.csv"
+            )
