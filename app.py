@@ -14,11 +14,17 @@ import polars as pl
 # Functions
 # =======================
 def melt_data(df: pl.DataFrame, on: str) -> pl.DataFrame:
-    """SPlit phone numbers and convert to long format."""
+    """Split phone numbers and convert to long format."""
     df = df.with_columns(
-        pl.col(on).str.split(" \n")
+        pl.col(on).str.split(" \n")  # Typically the phone number delimiter is " \n"
     )
     df = df.explode(on)
+
+    df = df.with_columns(
+        pl.col(on).str.split("\n")  # Also need to handle "\n" delimiter (no-op for previously split rows)
+    )
+    df = df.explode(on)
+
     after_length = df.shape[0]
     data = df.write_csv()
     return data, after_length
