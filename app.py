@@ -25,6 +25,8 @@ def melt_data(df: pl.DataFrame, on: str) -> pl.DataFrame:
     )
     df = df.explode(on)
 
+    df = df.rename({"Alt Phone", "Phone Number"})
+
     after_length = df.shape[0]
     data = df.write_csv()
     return data, after_length
